@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tic-Tac-Toe</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#0b1220;
+      --accent:#06b6d4;
+      --muted:#94a3b8;
+      --win:#16a34a;
+      --lose:#ef4444;
+      --glass: rgba(255,255,255,0.03);
+      --cell-size: min(88px, 16vmin);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg, #071023 0%, #071224 60%);
+      color:#e6eef6;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .card{
+      width: min(640px, 96vw);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:20px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .header{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .title{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .logo{
+      width:44px;
+      height:44px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--accent),#7c3aed);
+      border-radius:10px;
+      font-weight:700;
+      color:#021224;
+      box-shadow:0 6px 18px rgba(6,182,212,0.12);
+      font-size:18px;
+    }
+    h1{font-size:18px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .btn{
+      background:var(--glass);
+      color:inherit;
+      border:1px solid rgba(255,255,255,0.04);
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:13px;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{
+      background: linear-gradient(90deg,var(--accent),#7c3aed);
+      color:#021224;
+      border:none;
+    }
+
+    .meta{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-bottom:18px;
+      justify-content:space-between;
+    }
+    .status{
+      min-width:180px;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.02);
+      text-align:center;
+      font-weight:700;
+    }
+    .scoreboard{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .score{
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(255,255,255,0.02);
+      font-weight:700;
+      min-width:72px;
+      text-align:center;
+    }
+
+    .board{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      justify-items:center;
+      align-items:center;
+      padding:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border-radius:12px;
+    }
+    .cell{
+      width:var(--cell-size);
+      height:var(--cell-size);
+      display:grid;
+      place-items:center;
+      font-size: calc(var(--cell-size) / 2.6);
+      font-weight:800;
+      border-radius:10px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.008));
+      cursor:pointer;
+      user-select:none;
+      transition:transform .08s ease, box-shadow .12s ease;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.45), inset 0 -2px 6px rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .cell:hover{transform:translateY(-3px)}
+    .cell.disabled{cursor:default;opacity:0.9;transform:none}
+
+    .cell.x{color:#f97316} /* orange for X */
+    .cell.o{color:#60a5fa} /* blue for O */
+
+    .controls-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px;flex-wrap:wrap}
+    .mode-select{display:flex;gap:8px;align-items:center}
+    label.switch{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .small{
+      font-size:12px;color:var(--muted)
+    }
+
+    /* highlight winning line */
+    .cell.win{
+      background: linear-gradient(90deg, rgba(22,163,74,0.12), rgba(6,182,212,0.06));
+      box-shadow: 0 8px 28px rgba(6,182,212,0.08);
+      transform:translateY(-2px) scale(1.02);
+    }
+
+    @media (max-width:520px){
+      :root{--cell-size:calc(min(72px, 18vmin))}
+      .header{flex-direction:column;align-items:flex-start;gap:8px}
+      .meta{flex-direction:column;align-items:flex-start;gap:8px}
+      .controls{width:100%}
+      .controls-bottom{flex-direction:column;align-items:stretch}
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="application" aria-label="Tic Tac Toe">
+    <div class="header">
+      <div class="title">
+        <div class="logo">TTT</div>
+        <div>
+          <h1>Tic-Tac-Toe</h1>
+          <p class="lead">Play 2-player locally or vs the unbeatable AI</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="resetBtn" class="btn">Reset Board</button>
+        <button id="newGameBtn" class="btn primary">New Match</button>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="status" id="status">X's turn</div>
+
+      <div class="scoreboard" aria-hidden="true">
+        <div class="score">X: <span id="scoreX">0</span></div>
+        <div class="score">O: <span id="scoreO">0</span></div>
+        <div class="score">Ties: <span id="scoreT">0</span></div>
+      </div>
+    </div>
+
+    <section class="board" id="board" role="grid" aria-label="game board">
+      <!-- 9 cells inserted by JS -->
+    </section>
+
+    <div class="controls-bottom">
+      <div class="mode-select">
+        <label class="switch">
+          <input type="radio" name="mode" id="modePvP" checked>
+          <span>2-Player</span>
+        </label>
+        <label class="switch">
+          <input type="radio" name="mode" id="modePvC">
+          <span>Play vs Computer</span>
+        </label>
+        <div class="small">Computer plays <strong id="aiMark">O</strong> (unbeatable)</div>
+      </div>
+
+      <div class="small">Tip: Click a cell to play. Use <em>New Match</em> to clear scores.</div>
+    </div>
+  </main>
+
+  <script>
+    // --- Game state ---
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const scoreXEl = document.getElementById('scoreX');
+    const scoreOEl = document.getElementById('scoreO');
+    const scoreTEl = document.getElementById('scoreT');
+    const resetBtn = document.getElementById('resetBtn');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const modePvP = document.getElementById('modePvP');
+    const modePvC = document.getElementById('modePvC');
+    const aiMarkEl = document.getElementById('aiMark');
+
+    let board = Array(9).fill('');
+    let currentPlayer = 'X';
+    let gameOver = false;
+    let scores = { X:0, O:0, T:0 };
+
+    const winningCombos = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    // create cells
+    function createBoard(){
+      boardEl.innerHTML = '';
+      for(let i=0;i<9;i++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.setAttribute('data-index', i);
+        cell.setAttribute('role','button');
+        cell.setAttribute('aria-label', `cell ${i+1}`);
+        cell.addEventListener('click', onCellClick);
+        boardEl.appendChild(cell);
+      }
+      applyBoard();
+    }
+
+    // update DOM from board array
+    function applyBoard(){
+      for(let i=0;i<9;i++){
+        const cell = boardEl.children[i];
+        cell.textContent = board[i] || '';
+        cell.classList.toggle('x', board[i] === 'X');
+        cell.classList.toggle('o', board[i] === 'O');
+        if(board[i]) cell.classList.add('disabled'); else cell.classList.remove('disabled');
+      }
+    }
+
+    // click handler
+    function onCellClick(e){
+      const idx = Number(e.currentTarget.dataset.index);
+      if(gameOver || board[idx]) return;
+      makeMove(idx, currentPlayer);
+      if(!gameOver && modePvC.checked && currentPlayer === 'O'){
+        // If it's computer's turn, let it move after a short delay for UX
+        setTimeout(() => {
+          const aiIdx = bestMove(board, 'O');
+          if(aiIdx !== null) makeMove(aiIdx, 'O');
+        }, 200);
+      }
+    }
+
+    // place mark and evaluate
+    function makeMove(idx, mark){
+      if(board[idx] || gameOver) return;
+      board[idx] = mark;
+      applyBoard();
+      const result = checkWinner(board);
+      if(result){
+        handleResult(result);
+      } else {
+        // swap player
+        currentPlayer = (mark === 'X') ? 'O' : 'X';
+        statusEl.textContent = `${currentPlayer}'s turn`;
+        // if mode PvC and it's computer's turn, trigger AI if not already triggered by click
+        if(modePvC.checked && currentPlayer === getAiMark()){
+          setTimeout(()=>{
+            const aiIdx = bestMove(board, currentPlayer);
+            if(aiIdx !== null) makeMove(aiIdx, currentPlayer);
+          }, 200);
+        }
+      }
+    }
+
+    // get AI mark (computer takes the other mark than the human who starts)
+    function getAiMark(){
+      // let human be X if mode starts with X; allow always AI = O to keep consistent
+      return 'O';
+    }
+
+    // winner check
+    function checkWinner(b){
+      for(const combo of winningCombos){
+        const [a,b1,c] = combo;
+        if(b[a] && b[a] === b[b1] && b[a] === b[c]) return { winner: b[a], combo };
+      }
+      if(b.every(cell => cell)) return { winner: null }; // tie
+      return null; // game continues
+    }
+
+    // handle result
+    function handleResult(res){
+      gameOver = true;
+      if(res.winner){
+        statusEl.textContent = `${res.winner} wins!`;
+        // highlight winning cells
+        for(const i of res.combo){
+          boardEl.children[i].classList.add('win');
+        }
+        scores[res.winner] += 1;
+      } else {
+        statusEl.textContent = `It's a tie`;
+        scores.T += 1;
+      }
+      updateScores();
+    }
+
+    function updateScores(){
+      scoreXEl.textContent = scores.X;
+      scoreOEl.textContent = scores.O;
+      scoreTEl.textContent = scores.T;
+    }
+
+    // reset board (keeps scores)
+    function resetBoard(){
+      board = Array(9).fill('');
+      currentPlayer = 'X';
+      gameOver = false;
+      statusEl.textContent = `${currentPlayer}'s turn`;
+      createBoard();
+    }
+
+    // new match clears scores too
+    function newMatch(){
+      scores = { X:0, O:0, T:0 };
+      updateScores();
+      resetBoard();
+    }
+
+    resetBtn.addEventListener('click', resetBoard);
+    newGameBtn.addEventListener('click', newMatch);
+
+    // when mode changes, reset board (so AI/human turn aligns)
+    modePvP.addEventListener('change', ()=>{
+      aiMarkEl.textContent = getAiMark();
+      resetBoard();
+    });
+    modePvC.addEventListener('change', ()=>{
+      aiMarkEl.textContent = getAiMark();
+      resetBoard();
+    });
+
+    // --- Unbeatable AI (Minimax) ---
+    // returns best index for mark, or null if none
+    function bestMove(currentBoard, mark){
+      // if no empty -> null
+      const avail = availableMoves(currentBoard);
+      if(avail.length === 0) return null;
+
+      // minimax with caching optional
+      const opponent = (mark === 'X') ? 'O' : 'X';
+
+      // If immediate win available, take it
+      for(const i of avail){
+        const test = currentBoard.slice();
+        test[i] = mark;
+        const r = checkWinner(test);
+        if(r && r.winner === mark) return i;
+      }
+      // If opponent can win next, block it
+      for(const i of avail){
+        const test = currentBoard.slice();
+        test[i] = opponent;
+        const r = checkWinner(test);
+        if(r && r.winner === opponent) return i;
+      }
+
+      // Otherwise use minimax search
+      let bestScore = -Infinity;
+      let move = avail[0];
+      for(const i of avail){
+        const newBoard = currentBoard.slice();
+        newBoard[i] = mark;
+        const score = minimax(newBoard, 0, false, mark);
+        if(score > bestScore){
+          bestScore = score;
+          move = i;
+        }
+      }
+      return move;
+    }
+
+    function availableMoves(b){
+      const moves = [];
+      for(let i=0;i<9;i++) if(!b[i]) moves.push(i);
+      return moves;
+    }
+
+    // evaluate terminal state for a given maximizing player
+    function evaluate(b, maximizingPlayer){
+      const r = checkWinner(b);
+      if(!r) return null;
+      if(r.winner === null) return 0;
+      return (r.winner === maximizingPlayer) ? 10 : -10;
+    }
+
+    // minimax implementation (returns score)
+    function minimax(b, depth, isMaximizing, maximizingPlayer){
+      const evalResult = evaluate(b, maximizingPlayer);
+      if(evalResult !== null) return evalResult - depth; // prefer faster wins or slower losses
+
+      const moves = availableMoves(b);
+      if(moves.length === 0) return 0;
+
+      const player = isMaximizing ? maximizingPlayer : ((maximizingPlayer === 'X') ? 'O' : 'X');
+
+      if(isMaximizing){
+        let best = -Infinity;
+        for(const m of moves){
+          b[m] = player;
+          const score = minimax(b, depth+1, false, maximizingPlayer);
+          b[m] = '';
+          best = Math.max(best, score);
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for(const m of moves){
+          b[m] = player;
+          const score = minimax(b, depth+1, true, maximizingPlayer);
+          b[m] = '';
+          best = Math.min(best, score);
+        }
+        return best;
+      }
+    }
+
+    // Initialize
+    createBoard();
+    updateScores();
+
+    // if player selects PvC and AI starts (we currently always let human X start), you can adapt here.
+    // Optional enhancement: let user choose who starts; currently X always starts.
+  </script>
+</body>
+</html>
